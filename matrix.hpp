@@ -5,6 +5,7 @@
 #define __MATRIX_CLASS
 #include <iostream>
 #include <cstring>
+#include <cmath>
 using namespace std;
 
 class Matrix {
@@ -36,12 +37,17 @@ class Matrix {
     /**
      * Matmul
      */
-    Matrix dot(Matrix B) throw(std::string);
+    Matrix* dot(Matrix A, Matrix B) throw(std::string);
     
     /**
      * Broadcast add
      */
     Matrix add(Matrix B)throw(std::string);
+    
+    /**
+     * Broadcast sub
+     */
+    Matrix sub(Matrix B)throw(std::string);
     
     /**
      * Broadcast multiply
@@ -63,6 +69,16 @@ class Matrix {
     int get_cols(){return cols;}
     
     void randomize(float , float);
+    Matrix relu();
+    Matrix relu_grad();
+    Matrix softmax();
+    
+    Matrix zero() { std::memset(values, 0, sizeof(float)*cols*rows);}
+    Matrix T();
+    
+    ~Matrix() {
+        delete values;
+    }
     
 };
 

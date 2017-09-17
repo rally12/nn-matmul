@@ -6,20 +6,22 @@ using namespace std;
     /**
      * Matmul
      */
-    Matrix Matrix::dot( Matrix B) throw(std::string) {
-        Matrix ret = Matrix( cols, B.rows);
-        if(cols != B.rows) throw "dimensions, don't match.";
+    Matrix* Matrix::dot(Matrix A, Matrix B) throw(std::string) {
+        
+        if(A.cols != B.rows) throw "dimensions, don't match a b.";
+        if(cols != B.cols) throw "dimensions, don't match cols.";
+        if(A.rows != rows) throw "dimensions, don't match rows.";
         float cell=0;
         for (int c=0; c< cols; c++) {
             for (int r=0;  r < B.rows; r++) {
                 cell=0;
                 for ( int i = 0; i<cols; i++) {
-                    cell += at(r, i) * B.at(i, c);
+                    cell += A.at(r, i) * B.at(i, c);
                 }
-                ret.set(c,r, cell);
+                set(c,r, cell);
             }
         }
-        return ret;
+        return this;
     }
     
     /**
@@ -33,6 +35,23 @@ using namespace std;
             for (int r=0;  r < rows; r++) {
                 int br = r % B.rows;
                 cell=at(c,r) + B.at(bc, br);
+                set(c,r, cell);
+            }
+        }
+        return *this;
+    }
+    
+    /**
+     * Broadcast sub
+     */
+    Matrix Matrix::sub(Matrix B) throw(std::string){
+        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw "dimensions, don't match.";
+        float cell=0;
+        for (int c=0; c< cols; c++) {
+            int bc = c % B.cols;
+            for (int r=0;  r < rows; r++) {
+                int br = r % B.rows;
+                cell=at(c,r) - B.at(bc, br);
                 set(c,r, cell);
             }
         }
@@ -81,4 +100,49 @@ using namespace std;
         for (int i=0; i< e; i++) {
             values[i] = offset + (std::rand()*norm)/RAND_MAX;
         }
+    }
+    
+    Matrix Matrix::relu() {
+        Matrix ret = Matrix(rows, cols);
+        int e = cols*rows;
+        for (int i=0; i< e; i++) {
+            ret.values[i] = max(0.0, (double)values[i]);
+        }
+        return ret;
+    }
+    
+    Matrix Matrix::relu_grad() {
+        Matrix ret = Matrix(rows, cols);
+        int e = cols*rows;
+        for (int i=0; i< e; i++) {
+            ret.values[i] = (values[i]>0)?0:1;
+        }
+        return ret;
+    }
+    
+    Matrix Matrix::softmax() {
+        Matrix ret = Matrix(rows, cols);
+        int e = cols*rows;
+        float ex[cols];
+        for (int c=0; c<cols; c++){
+            for (int r=0; r< rows; r++) {
+                float ei = std::exp(at(r,c));
+                ex[c] +=ei;
+                ret.set(r,c,ei);
+            }
+            for (int r=0; r< rows; r++) {
+                ret.set(r,c,  at(r,c) / ex[c]);
+            }
+        }
+        return ret;
+    }
+    
+    Matrix Matrix::T() {
+        Matrix ret = Matrix(cols, rows);
+        for (int c=0; c<cols; c++){
+            for (int r=0; r< rows; r++) {
+                ret.set(c,r,at(r,c));
+            }
+        }
+        return ret;
     }

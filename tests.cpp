@@ -31,7 +31,7 @@ using namespace std;
    
    cout << ma.str() <<endl;
    
-   Matrix mm = ma.dot(ma);
+   Matrix mm = *ma.dot(ma,ma);
    
    cout << mm.str() <<endl;
    
@@ -39,7 +39,7 @@ using namespace std;
    
    cout << mi.str() <<endl;
    
-   Matrix mmi = ma.dot(mi);
+   Matrix mmi = *ma.dot(ma, mi);
    
    cout << mmi.str() <<endl;
    
