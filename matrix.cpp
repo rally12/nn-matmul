@@ -2,22 +2,23 @@
 #include "matrix.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <random>
 
 using namespace std;
     /**
      * Matmul
      */
-    Matrix* Matrix::dot(Matrix &A, Matrix &B) throw(std::string) {
+    Matrix* Matrix::dot(Matrix *A, Matrix *B) throw(std::string) {
         
-        if(A.cols != B.rows) throw std::invalid_argument("dimensions, don't match dot a b. "+str()+" <dot> "+B.str());
-        if(cols != B.cols) throw std::invalid_argument("dimensions, don't match cols. "+str()+" <dot> "+B.str());
-        if(A.rows != rows) throw std::invalid_argument("dimensions, don't match rows. "+str()+" <dot> "+B.str());
+        if(A->cols != B->rows) throw std::invalid_argument("dimensions, don't match dot a b. "+A->str()+" <dot> "+B->str());
+        if(cols != B->cols) throw std::invalid_argument("dimensions, don't match cols. "+A->str()+" <dot> "+B->str());
+        if(A->rows != rows) throw std::invalid_argument("dimensions, don't match rows. "+A->str()+" <dot> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
-            for (int r=0;  r < B.rows; r++) {
+            for (int r=0;  r < rows; r++) {
                 cell=0;
                 for ( int i = 0; i<cols; i++) {
-                    cell += A.at(r, i) * B.at(i, c);
+                    cell += A->at(r, i) * B->at(i, c);
                 }
                 set(r, c, cell);
             }
@@ -28,14 +29,14 @@ using namespace std;
     /**
      * Broadcast add
      */
-    Matrix* Matrix::add(Matrix &B) throw(std::string){
-        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B.str());
+    Matrix* Matrix::add(Matrix *B) throw(std::string){
+        if (0 != (cols % B->cols) || 0 != (rows % B->rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
-            int bc = c % B.cols;
+            int bc = c % B->cols;
             for (int r=0;  r < rows; r++) {
-                int br = r % B.rows;
-                cell=at(r,c) + B.at(r, c);
+                int br = r % B->rows;
+                cell=at(r,c) + B->at(r, c);
                 
                 set(r, c, cell);
             }
@@ -46,14 +47,14 @@ using namespace std;
     /**
      * Broadcast sub
      */
-    Matrix* Matrix::sub(Matrix &B) throw(std::string){
-        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B.str());
+    Matrix* Matrix::sub(Matrix *B) throw(std::string){
+        if (0 != (cols % B->cols) || 0 != (rows % B->rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
-            int bc = c % B.cols;
+            int bc = c % B->cols;
             for (int r=0;  r < rows; r++) {
-                int br = r % B.rows;
-                cell=at(r, c) - B.at(br, bc);
+                int br = r % B->rows;
+                cell=at(r, c) - B->at(br, bc);
                 set(r, c, cell);
             }
         }
@@ -63,14 +64,14 @@ using namespace std;
     /**
      * Broadcast multiply
      */
-    Matrix* Matrix::mul(Matrix &B) throw(std::string){
-        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw std::invalid_argument("dimensions, don't match. "+str()+" <> "+B.str());
+    Matrix* Matrix::mul(Matrix *B) throw(std::string){
+        if (0 != (cols % B->cols) || 0 != (rows % B->rows)) throw std::invalid_argument("dimensions, don't match. "+str()+" <> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
-            int bc = c % B.cols;
+            int bc = c % B->cols;
             for (int r=0;  r < rows; r++) {
-                int br = r % B.rows;
-                cell=at(r, c) * B.at(br, bc);
+                int br = r % B->rows;
+                cell=at(r, c) * B->at(br, bc);
                 set(r, c, cell);
             }
         }
@@ -97,10 +98,15 @@ using namespace std;
         return ret;
     }
     
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_real_distribution<> dis(1, 2);
+
     void Matrix::randomize(float norm, float offset){
-        int e = cols*rows;
-        for (int i=0; i< e; i++) {
-            values[i] = offset + (std::rand()*norm)/RAND_MAX;
+    	std::uniform_real_distribution<> dis(0, norm);
+        for (int i=0; i< len; i++) {
+            values[i] = dis(gen) + offset;
+            cout<< values[i]<<endl;
         }
     }
     

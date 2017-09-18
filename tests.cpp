@@ -1,4 +1,4 @@
-#include <stb_image.h>
+//#include <stb_image.h>
 #include <iostream>
 #include "matrix.hpp"
 
@@ -31,7 +31,7 @@ using namespace std;
    
    cout << ma.str() <<endl;
    
-   ma.dot(ma,ma);
+   ma.dot(&ma,&ma);
    
    cout << ma.str() <<endl;
    
@@ -39,15 +39,15 @@ using namespace std;
    
    cout << mi.str() <<endl;
    
-   ma.dot(ma, mi);
+   ma.dot(&ma, &mi);
    
    cout << ma.str() <<endl;
    
-   ma.add(mi);
+   ma.add(&mi);
    
    cout << ma.str() <<endl;
    
-   ma.mul(mi);
+   ma.mul(&mi);
    
    cout <<"mul "<< ma.str() <<endl;
    

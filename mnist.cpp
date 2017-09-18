@@ -1,5 +1,5 @@
  
-#include <stb_image.h>
+//#include <stb_image.h>
 #include "matrix.hpp"
 #include <map>
 #include <cmath>
@@ -55,32 +55,33 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
     cout<< line++ <<endl;
     Matrix* x=X;
     cout<< line++ <<endl;
-    
+    params.insert(make_pair("A0", x));
+
     for (int i=0; i< (layers); i++){
         Matrix* W = params[string("W").append(to_string(i+1))];
         Matrix* b = params[string("b").append(to_string(i+1))];
         Matrix* A = params[string("A").append(to_string(i+1))];
         
         cout<< line++ << "  - "<<i<<endl;
-        cout<<" W ["<< W->get_rows() <<", "<<W->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
+        cout<<" W "<< W->str() <<"  x "<< x->str() <<"  b "<< b->str() <<endl;
         
-        
-        A->dot(*W, *x);
-        A->add(*b);
-        //A->relu();
+        Matrix Wt = W->T();
+        A->dot(W, x);
+        A->add(b);
+        A->relu();
         cout<<" A"<<i+1<<" ["<< A->get_rows() <<", "<<A->get_cols() <<"]  x["<< x->get_rows() <<", "<<x->get_cols() <<"] "<<endl;
         x = A;
     }
  }
  
- map<string, Matrix*> backprop(Matrix* X, Matrix* Y, map<string, Matrix*> params, int layers) {
+ void backprop(Matrix* X, Matrix* Y, map<string, Matrix*> params, int layers) {
     map<string, Matrix> activations = map<string, Matrix>();
     
     Matrix* x=X;
     Matrix* y=Y;
     Matrix* ones = params["ones"];
-    Matrix dZ = Matrix(*Y);
-    for (int i=(layers-1); i>0; i--){
+    Matrix* dZ = new Matrix(*Y);
+    for (int i=(layers); i>0; i--){
         Matrix* W = params[string("W").append(to_string(i))];
         Matrix* b = params[string("b").append(to_string(i))];
         Matrix* A = params[string("A").append(to_string(i))];
@@ -88,31 +89,33 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
          
         cout<<" bp W ["<< W->get_rows() <<", "<<W->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
         
-        if (i == (layers -1)){
-            dZ = Matrix(*A);
-            dZ.sub(*y);
+        if (i == (layers)){
+            dZ = new Matrix(*A);
+            dZ->sub(y);
         } 
         //dW3 = 1./m * np.dot(dZ3, A2.T)
         Matrix dW = Matrix(*W);//copy size
-        Matrix Ait = Ai->T();
-        dW.dot(dZ, Ait)->mul(one_over_m);
+        Matrix dAi = Ai->T();
+        dW.dot(dZ, &dAi)->mul(&one_over_m);
+
+        dW.mul(&learning_rate);
+        W->sub(&dW);
         
-        dW.mul(learning_rate);
-        W->sub(dW);
-        
+        //cout<< W->display()<<endl;
+
         Matrix db = Matrix(*b);//copy size
-        db.dot(dZ, *ones);
-        db.mul(one_over_m);
-        db.mul(learning_rate);
-        b->sub(db);
+        db.dot(dZ, ones);
+        db.mul(&one_over_m);
+        db.mul(&learning_rate);
+        b->sub(&db);
         y = A;
         
         if (i>0) {
-            Matrix dAi = Matrix(*Ai);
+            Matrix* dAi = new Matrix(*Ai);
             Matrix Wt = W->T();
-            dAi.dot(Wt, dZ);
-            dAi.relu_grad();
-            
+            dAi->dot(&Wt, dZ);
+            dAi->relu_grad();
+            delete dZ;
             dZ=dAi;
         }
         
@@ -121,7 +124,7 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
 
 void display(map<string, Matrix*> params) {
     for (map<string, Matrix*>::iterator i=params.begin(); i != params.end(); ++i){
-        cout << i->first <<   ""<< endl ;//i->second->get_cols() << endl;
+        cout << i->first <<   " " << i->second->str() << endl;
     }
 }
 int  main(int argc, char** argv){
@@ -129,7 +132,7 @@ int  main(int argc, char** argv){
     Matrix* ones = params["ones"];
     
     Matrix X = Matrix(input_count[0], batch_size);
-    X.randomize(1.0, 0.0);
+    X.randomize(0.01, 0.03);
     display(params);
     feedforward(&X, params, 3);
     display(params);
@@ -137,16 +140,17 @@ int  main(int argc, char** argv){
     Matrix* Y = new Matrix(*params[string("A3")]);
     
     cout<< "end ff m2"<<endl; 
-    Y->add(*ones);
-    for(int i=0;i<10 ; i++){
+    Y->add(ones);
+    for(int i=0;i<1 ; i++){
         cout<< "batch: "<<i<<endl;
         feedforward(&X, params, 3);
         
         Matrix A3 = Matrix(*params[string("A3")]);
         cout<< "batch: "<<i<<endl;
-        A3.sub(*Y);
-        A3.dot(A3, *ones);
-        cout << "err: "<< A3.str() <<endl;
+        A3.sub(Y);
+        Matrix err = Matrix(*ones);
+        err.dot(&A3, ones);
+        cout << "err: "<< err.display() <<endl;
         backprop(&X, Y, params, 3);
     }
     
