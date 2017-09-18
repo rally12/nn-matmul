@@ -1,16 +1,17 @@
 
 #include "matrix.hpp"
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
     /**
      * Matmul
      */
-    Matrix* Matrix::dot(Matrix A, Matrix B) throw(std::string) {
+    Matrix* Matrix::dot(Matrix &A, Matrix &B) throw(std::string) {
         
-        if(A.cols != B.rows) throw "dimensions, don't match a b.";
-        if(cols != B.cols) throw "dimensions, don't match cols.";
-        if(A.rows != rows) throw "dimensions, don't match rows.";
+        if(A.cols != B.rows) throw std::invalid_argument("dimensions, don't match dot a b. "+str()+" <dot> "+B.str());
+        if(cols != B.cols) throw std::invalid_argument("dimensions, don't match cols. "+str()+" <dot> "+B.str());
+        if(A.rows != rows) throw std::invalid_argument("dimensions, don't match rows. "+str()+" <dot> "+B.str());
         float cell=0;
         for (int c=0; c< cols; c++) {
             for (int r=0;  r < B.rows; r++) {
@@ -27,8 +28,8 @@ using namespace std;
     /**
      * Broadcast add
      */
-    Matrix Matrix::add(Matrix B) throw(std::string){
-        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw "dimensions, don't match.";
+    Matrix* Matrix::add(Matrix &B) throw(std::string){
+        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B.str());
         float cell=0;
         for (int c=0; c< cols; c++) {
             int bc = c % B.cols;
@@ -39,14 +40,14 @@ using namespace std;
                 set(r, c, cell);
             }
         }
-        return *this;
+        return this;
     }
     
     /**
      * Broadcast sub
      */
-    Matrix Matrix::sub(Matrix B) throw(std::string){
-        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw "dimensions, don't match.";
+    Matrix* Matrix::sub(Matrix &B) throw(std::string){
+        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B.str());
         float cell=0;
         for (int c=0; c< cols; c++) {
             int bc = c % B.cols;
@@ -56,14 +57,14 @@ using namespace std;
                 set(r, c, cell);
             }
         }
-        return *this;
+        return this;
     }
     
     /**
      * Broadcast multiply
      */
-    Matrix Matrix::mul(Matrix B) throw(std::string){
-        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw "dimensions, don't match.";
+    Matrix* Matrix::mul(Matrix &B) throw(std::string){
+        if (0 != (cols % B.cols) || 0 != (rows % B.rows)) throw std::invalid_argument("dimensions, don't match. "+str()+" <> "+B.str());
         float cell=0;
         for (int c=0; c< cols; c++) {
             int bc = c % B.cols;
@@ -73,10 +74,10 @@ using namespace std;
                 set(r, c, cell);
             }
         }
-        return *this;
+        return this;
     }
     
-    const std::string Matrix::str() {
+    const std::string Matrix::display() {
         std::string ret = string("");
         ret.append(" M(");
         ret.append(to_string(cols));
@@ -103,13 +104,12 @@ using namespace std;
         }
     }
     
-    Matrix Matrix::relu() {
-        Matrix ret = Matrix(rows, cols);
+    Matrix* Matrix::relu() {
         int e = cols*rows;
         for (int i=0; i< e; i++) {
-            ret.values[i] = max(0.0, (double)values[i]);
+            values[i] = max(0.0, (double)values[i]);
         }
-        return ret;
+        return this;
     }
     
     Matrix Matrix::relu_grad() {

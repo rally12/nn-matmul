@@ -14,11 +14,11 @@ class Matrix {
     
     float* values = NULL;
     int rows=0, cols=0;
-    
+    string name="M";
     
     public:
     
-    Matrix(int rows, int cols): rows(rows), cols(cols) {
+    Matrix(int rows, int cols, string name="M"): rows(rows), cols(cols) {
         values = new float[rows*cols];
     }
     
@@ -32,46 +32,48 @@ class Matrix {
     
     Matrix(const Matrix &m): rows(m.rows), cols(m.cols) {
         values = new float[rows*cols];
+        name = m.name;
         memcpy(values, m.values, rows*cols*sizeof(float));
     }
     
     /**
      * Matmul
      */
-    Matrix* dot(Matrix A, Matrix B) throw(std::string);
+    Matrix* dot(Matrix &A, Matrix &B) throw(std::string);
     
     /**
      * Broadcast add
      */
-    Matrix add(Matrix B)throw(std::string);
+    Matrix* add(Matrix &B)throw(std::string);
     
     /**
      * Broadcast sub
      */
-    Matrix sub(Matrix B)throw(std::string);
+    Matrix* sub(Matrix &B)throw(std::string);
     
     /**
      * Broadcast multiply
      */
-    Matrix mul(Matrix B)throw(std::string);
+    Matrix* mul(Matrix &B)throw(std::string);
     
     float at(int r, int c) {
         return values[r + rows*c];
     };
     
-    Matrix set(int r, int c, float v) {
+    Matrix* set(int r, int c, float v) {
         int pos = r + rows*c;
         values[pos] = v;
-        return *this;
+        return this;
     };
     
-    const std::string str();
+    const std::string display();
+    const std::string str(){return "M("+name+")["+to_string(cols)+", "+to_string(rows)+"] ";};
     
     int get_rows(){return rows;}
     int get_cols(){return cols;}
     
     void randomize(float , float);
-    Matrix relu();
+    Matrix* relu();
     Matrix relu_grad();
     Matrix softmax();
     
