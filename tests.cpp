@@ -31,25 +31,25 @@ using namespace std;
    
    cout << ma.str() <<endl;
    
-   Matrix mm = *ma.dot(ma,ma);
+   ma.dot(ma,ma);
    
-   cout << mm.str() <<endl;
+   cout << ma.str() <<endl;
    
    Matrix mi = Matrix(I, 3, 3);
    
    cout << mi.str() <<endl;
    
-   Matrix mmi = *ma.dot(ma, mi);
+   ma.dot(ma, mi);
    
-   cout << mmi.str() <<endl;
+   cout << ma.str() <<endl;
    
-   mmi = ma.add(mi);
+   ma.add(mi);
    
-   cout << mmi.str() <<endl;
+   cout << ma.str() <<endl;
    
-   mmi = ma.mul(mi);
+   ma.mul(mi);
    
-   cout << mmi.str() <<endl;
+   cout <<"mul "<< ma.str() <<endl;
    
    
    return 0;

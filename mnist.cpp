@@ -29,6 +29,9 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         Matrix* b = new Matrix(input_count[i+1], 1);
         params.insert(make_pair(string("b").append(to_string(i+1)), b));
         
+        cout<<" W ["<< w->get_rows() <<", "<<w->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
+        
+        
         Matrix* A = new Matrix(input_count[i+1], batch_size);
         params.insert(make_pair(string("A").append(to_string(i+1)), A));
         
@@ -45,18 +48,26 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
 
  map<string, Matrix*> feedforward(Matrix* X, map<string, Matrix*> params, int layers) {
     map<string, Matrix> activations = map<string, Matrix>();
-    
+    int line =0;
+    cout<< line++ <<endl;
     Matrix* x=X;
+    cout<< line++ <<endl;
     
-    for (int i=0; i< layers; i++){
+    for (int i=0; i< (layers); i++){
         Matrix* W = params[string("W").append(to_string(i+1))];
         Matrix* b = params[string("b").append(to_string(i+1))];
         Matrix* A = params[string("A").append(to_string(i+1))];
         
-        A->dot(*W, *x)->add(*b);
+        cout<< line++ << "  - "<<i<<endl;
+        cout<<" W ["<< W->get_rows() <<", "<<W->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
+        A->dot(*W, *x);
+        A->add(*b);
         A->relu();
+        cout<<" A"<<i<<" ["<< A->get_rows() <<", "<<A->get_cols() <<"]  x["<< x->get_rows() <<", "<<x->get_cols() <<"] "<<endl;
         x = A;
     }
+    params.insert(make_pair(string("A").append(to_string(layers)), x));
+    cout<< "end ff A"<<layers<<endl;    
  }
  
  map<string, Matrix*> backprop(Matrix* X, Matrix* Y, map<string, Matrix*> params, int layers) {
@@ -72,6 +83,7 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         Matrix* A = params[string("A").append(to_string(i))];
         Matrix* Ai = params[string("A").append(to_string(i-1))];
          
+        cout<<" bp W ["<< W->get_rows() <<", "<<W->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
         
         if (i == (layers -1)){
             dZ = Matrix(*A);
@@ -84,7 +96,8 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         W->sub(dW.mul(learning_rate));
         
         Matrix db = Matrix(*b);//copy size
-        db.dot(dZ, *ones)->mul(one_over_m);
+        db.dot(dZ, *ones);
+        db.mul(one_over_m);
         
         b->sub(db.mul(learning_rate));
         y = A;
@@ -114,13 +127,17 @@ int  main(int argc, char** argv){
     //display(params);
     matrix_map activations = feedforward(&X, params, 3);
     
+    cout<< "end ff m"<<endl; 
     Matrix* Y = new Matrix(*params[string("A3")]);
+    
+    cout<< "end ff m2"<<endl; 
     Y->add(*ones);
     for(int i=0;i<10 ; i++){
+        cout<< "batch: "<<i<<endl;
         feedforward(&X, params, 3);
         
         Matrix A3 = Matrix(*params[string("A3")]);
-        
+        cout<< "batch: "<<i<<endl;
         A3.sub(*Y);
         A3.dot(A3, *ones);
         cout << "err: "<< A3.str() <<endl;

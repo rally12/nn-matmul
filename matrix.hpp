@@ -25,8 +25,9 @@ class Matrix {
     /**
      * make sure values length=rows*cols 
      */
-    Matrix(float* values, int rows, int cols): rows(rows), cols(cols) {
-        this->values = values;
+    Matrix(float* values2, int rows, int cols): rows(rows), cols(cols) {
+        values = new float[rows*cols];
+        memcpy(values, values2, rows*cols*sizeof(float));
     }
     
     Matrix(const Matrix &m): rows(m.rows), cols(m.cols) {
@@ -54,12 +55,13 @@ class Matrix {
      */
     Matrix mul(Matrix B)throw(std::string);
     
-    float at(int c, int r) {
-        return values[cols*r + c];
+    float at(int r, int c) {
+        return values[r + rows*c];
     };
     
-    Matrix set(int c, int r, float v) {
-        values[cols*r + c] = v;
+    Matrix set(int r, int c, float v) {
+        int pos = r + rows*c;
+        values[pos] = v;
         return *this;
     };
     
@@ -77,7 +79,8 @@ class Matrix {
     Matrix T();
     
     ~Matrix() {
-        delete values;
+        if(values != NULL) delete values;
+        values = NULL;
     }
     
 };

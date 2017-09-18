@@ -18,7 +18,7 @@ using namespace std;
                 for ( int i = 0; i<cols; i++) {
                     cell += A.at(r, i) * B.at(i, c);
                 }
-                set(c,r, cell);
+                set(r, c, cell);
             }
         }
         return this;
@@ -34,8 +34,9 @@ using namespace std;
             int bc = c % B.cols;
             for (int r=0;  r < rows; r++) {
                 int br = r % B.rows;
-                cell=at(c,r) + B.at(bc, br);
-                set(c,r, cell);
+                cell=at(r,c) + B.at(r, c);
+                
+                set(r, c, cell);
             }
         }
         return *this;
@@ -51,8 +52,8 @@ using namespace std;
             int bc = c % B.cols;
             for (int r=0;  r < rows; r++) {
                 int br = r % B.rows;
-                cell=at(c,r) - B.at(bc, br);
-                set(c,r, cell);
+                cell=at(r, c) - B.at(br, bc);
+                set(r, c, cell);
             }
         }
         return *this;
@@ -68,8 +69,8 @@ using namespace std;
             int bc = c % B.cols;
             for (int r=0;  r < rows; r++) {
                 int br = r % B.rows;
-                cell=at(c,r) * B.at(bc, br);
-                set(c,r, cell);
+                cell=at(r, c) * B.at(br, bc);
+                set(r, c, cell);
             }
         }
         return *this;
