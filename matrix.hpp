@@ -17,9 +17,11 @@ class Matrix {
     int rows=0, cols=0;
     string name="M";
     int len = 0;
-    
+	
+    int index(int r, int c){return r + rows*c;}
+
     public:
-    
+    bool debug = false;
     Matrix(int rows, int cols, string name="M"): rows(rows), cols(cols) {
     	len = rows*cols;
         values = new float[len];
@@ -62,16 +64,19 @@ class Matrix {
     Matrix* mul(Matrix *B)throw(std::string);
     
     float at(int r, int c) {
-        return values[r + rows*c];
+		 if (debug) cout<<" pos="<<to_string(r)<<", "<<to_string(c)<<
+		" v="<<to_string(values[r + rows*c])<<endl;
+			
+        return values[index(r,c)];
     };
     
     Matrix* set(int r, int c, float v) {
-        int pos = r + rows*c;
+        int pos = index(r,c);
 
 		if (pos >= (len)){
 			cout<<" pos="<<to_string(pos)<<" len="<<to_string(rows*cols)<<endl;
 			throw new std::invalid_argument(
-					"dimensions, don't match." + to_string(pos) + " <> "
+					"dimensions, out of range." + to_string(pos) + " <> "
 							+ to_string(len));
 		}
         values[pos] = v;

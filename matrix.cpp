@@ -11,13 +11,19 @@ using namespace std;
     Matrix* Matrix::dot(Matrix *A, Matrix *B) throw(std::string) {
         
         if(A->cols != B->rows) throw std::invalid_argument("dimensions, don't match dot a b. "+A->str()+" <dot> "+B->str());
-        if(cols != B->cols) throw std::invalid_argument("dimensions, don't match cols. "+A->str()+" <dot> "+B->str());
-        if(A->rows != rows) throw std::invalid_argument("dimensions, don't match rows. "+A->str()+" <dot> "+B->str());
-        float cell=0;
-        for (int c=0; c< cols; c++) {
+        //if(cols != B->cols) throw std::invalid_argument("dimensions, don't match cols. "+A->str()+" <dot> "+B->str());
+        //if(A->rows != rows) throw std::invalid_argument("dimensions, don't match rows. "+A->str()+" <dot> "+B->str());
+		if (values != NULL) delete values;
+		this->cols = B->cols;
+		this->rows = A->rows;
+		values = new float[rows*cols];
+        len = rows * cols;
+		float cell=0;
+		int square = A->cols;
+        for (int c=0; c < cols; c++) {
             for (int r=0;  r < rows; r++) {
                 cell=0;
-                for ( int i = 0; i<cols; i++) {
+                for ( int i = 0; i < square; i++) {
                     cell += A->at(r, i) * B->at(i, c);
                 }
                 set(r, c, cell);
@@ -106,7 +112,6 @@ using namespace std;
     	std::uniform_real_distribution<> dis(0, norm);
         for (int i=0; i< len; i++) {
             values[i] = dis(gen) + offset;
-            cout<< values[i]<<endl;
         }
     }
     
