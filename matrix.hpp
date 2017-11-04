@@ -18,21 +18,23 @@ class Matrix {
     string name="M";
     int len = 0;
 	
-    int index(int r, int c){return r + rows*c;}
+    int index(int r, int c){return c + cols*r;}
 
     public:
     bool debug = false;
     Matrix(int rows, int cols, string name="M"): rows(rows), cols(cols) {
     	len = rows*cols;
-        values = new float[len];
+        values = new float[len]();
+        this->name = name;
     }
     
     /**
      * make sure values length=rows*cols 
      */
-    Matrix(float* values2, int rows, int cols): rows(rows), cols(cols) {
+    Matrix(float* values2, int rows, int cols, string name="M"): rows(rows), cols(cols) {
     	len = rows*cols;
-    	values = new float[len];
+    	values = new float[len]();
+    	this->name = name;
         memcpy(values, values2, rows*cols*sizeof(float));
     }
     
@@ -43,6 +45,13 @@ class Matrix {
         memcpy(values, m.values, rows*cols*sizeof(float));
     }
     
+    Matrix(const Matrix &m, string name): rows(m.rows), cols(m.cols) {
+        	len = rows*cols;
+            values = new float[len];
+            this->name = name;
+            memcpy(values, m.values, rows*cols*sizeof(float));
+        }
+
     /**
      * Matmul
      */
@@ -54,6 +63,11 @@ class Matrix {
     Matrix* add(Matrix *B)throw(std::string);
     
     /**
+	 * Broadcast add
+	 */
+	Matrix* add(float x)throw(std::string);
+
+    /**
      * Broadcast sub
      */
     Matrix* sub(Matrix *B)throw(std::string);
@@ -63,16 +77,22 @@ class Matrix {
      */
     Matrix* mul(Matrix *B)throw(std::string);
     
+    /**
+	 * Broadcast multiply
+	 */
+	Matrix* mul(float x)throw(std::string);
+
     float at(int r, int c) {
 		 if (debug) cout<<" pos="<<to_string(r)<<", "<<to_string(c)<<
-		" v="<<to_string(values[r + rows*c])<<endl;
+		" v="<<to_string(values[c + cols*r])<<endl;
 			
         return values[index(r,c)];
     };
     
     Matrix* set(int r, int c, float v) {
         int pos = index(r,c);
-
+        if (debug) cout<<" set="<<to_string(r)<<", "<<to_string(c)<<
+        		" to "<<to_string(v)<<endl;
 		if (pos >= (len)){
 			cout<<" pos="<<to_string(pos)<<" len="<<to_string(rows*cols)<<endl;
 			throw new std::invalid_argument(
@@ -94,11 +114,11 @@ class Matrix {
     Matrix relu_grad();
     Matrix softmax();
     
-    Matrix zero() { std::memset(values, 0, sizeof(float)*cols*rows);}
+    void zero() { memset(values, 0, sizeof(float)*len);}
     Matrix T();
     
     ~Matrix() {
-        if(values != NULL) delete values;
+        if(values != NULL) delete[] values;
         values = NULL;
     }
     

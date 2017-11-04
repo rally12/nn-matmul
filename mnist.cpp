@@ -9,11 +9,10 @@ using namespace std;
 int input_count[] = {1228, 300, 25, 10};
 int batch_size = 10;
 
-float one_over_m_[]={1.0/batch_size};
-Matrix one_over_m = Matrix(one_over_m_,1,1);
+float one_over_m = 1.0/batch_size;
+//Matrix one_over_m = Matrix(one_over_m_,1,1);
 
-float learning_rate_[]={0.07};
-Matrix learning_rate = Matrix(learning_rate_,1,1);
+float learning_rate=0.00000007;
 
 typedef  map<string, Matrix*> matrix_map;
 
@@ -29,16 +28,20 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         
         name = string("b").append(to_string(i+1));
         Matrix* b = new Matrix(input_count[i+1], 1, name);
+        b->zero();
         params.insert(make_pair(name, b));
         
         cout<<" W ["<< w->get_rows() <<", "<<w->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
         
-        name = string("A").append(to_string(i+1));
-        Matrix* A = new Matrix(input_count[i+1], batch_size, name);
-        params.insert(make_pair(name, A));
+		name = string("A").append(to_string(i+1));
+		Matrix* A = new Matrix(input_count[i+1], batch_size, name);
+		A->zero();
+		params.insert(make_pair(name, A));
+
         
         name = string("dz").append(to_string(i+1));
         Matrix* dz = new Matrix(input_count[i+1], batch_size, name);
+        dz->zero();
         params.insert(make_pair(name, dz));
     }
     
@@ -62,6 +65,8 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         Matrix* b = params[string("b").append(to_string(i+1))];
         Matrix* A = params[string("A").append(to_string(i+1))];
         
+        //cout <<" ff "<< i << endl << W->display() <<endl;
+
         cout<< line++ << "  - "<<i<<endl;
         cout<<" W "<< W->str() <<"  x "<< x->str() <<"  b "<< b->str() <<endl;
         
@@ -71,6 +76,7 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         A->relu();
         cout<<" A"<<i+1<<" ["<< A->get_rows() <<", "<<A->get_cols() <<"]  x["<< x->get_rows() <<", "<<x->get_cols() <<"] "<<endl;
         x = A;
+        cout <<" ff "<< i << endl << A->display() <<endl;
     }
  }
  
@@ -80,7 +86,7 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
     Matrix* x=X;
     Matrix* y=Y;
     Matrix* ones = params["ones"];
-    Matrix* dZ = new Matrix(*Y);
+    Matrix* dZ = NULL;//new Matrix(*Y);
     for (int i=(layers); i>0; i--){
         Matrix* W = params[string("W").append(to_string(i))];
         Matrix* b = params[string("b").append(to_string(i))];
@@ -90,36 +96,40 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         cout<<" bp W ["<< W->get_rows() <<", "<<W->get_cols() <<"]  b["<< b->get_rows() <<", "<<b->get_cols() <<"] "<<endl;
         
         if (i == (layers)){
-            dZ = new Matrix(*A);
+            dZ = new Matrix(*A, "dZ");
             dZ->sub(y);
         } 
         //dW3 = 1./m * np.dot(dZ3, A2.T)
-        Matrix dW = Matrix(*W);//copy size
+        Matrix dW = Matrix(*W, "dW");//copy size
         Matrix dAi = Ai->T();
-        dW.dot(dZ, &dAi)->mul(&one_over_m);
 
-        dW.mul(&learning_rate);
+        cout<< dAi.display() <<endl;
+        cout<< dZ->display() <<endl;
+        dW.dot(dZ, &dAi)->mul(one_over_m);
+        cout<< dW.display() <<endl;
+        dW.mul(learning_rate);
         W->sub(&dW);
         
-        //cout<< W->display()<<endl;
+        cout<< W->display()<<endl;
 
         Matrix db = Matrix(*b);//copy size
         db.dot(dZ, ones);
-        db.mul(&one_over_m);
-        db.mul(&learning_rate);
+        db.mul(one_over_m);
+        db.mul(learning_rate);
         b->sub(&db);
         y = A;
         
+
         if (i>0) {
-            Matrix* dAi = new Matrix(*Ai);
+            Matrix* dAi = new Matrix(*Ai,"dZ");
             Matrix Wt = W->T();
             dAi->dot(&Wt, dZ);
             dAi->relu_grad();
             delete dZ;
             dZ=dAi;
         }
-        
     }
+    delete dZ;
  }
 
 void display(map<string, Matrix*> params) {
@@ -137,22 +147,29 @@ int  main(int argc, char** argv){
     feedforward(&X, params, 3);
     display(params);
     cout<< "end ff m"<< endl; //<<params[string("A3")]<<endl; 
-    Matrix* Y = new Matrix(*params[string("A3")]);
+    Matrix Y = Matrix(input_count[3], batch_size);
+    Y.randomize(0.01, 0.03);
     
     cout<< "end ff m2"<<endl; 
-    Y->add(ones);
-    for(int i=0;i<1 ; i++){
+    //Y->add(ones);
+    for(int i=0;i<2 ; i++){
         cout<< "batch: "<<i<<endl;
         feedforward(&X, params, 3);
         
         Matrix A3 = Matrix(*params[string("A3")]);
-        cout<< "batch: "<<i<<endl;
-        A3.sub(Y);
-        Matrix err = Matrix(*ones);
+        //cout<< "batch: "<<i<<endl<<A3.display()<<endl;
+        A3.sub(&Y);
+        Matrix err = Matrix(*ones,"err");
         err.dot(&A3, ones);
         cout << "err: "<< err.display() <<endl;
-        backprop(&X, Y, params, 3);
+        backprop(&X, &Y, params, 3);
     }
     
+    params.erase("A0");
+    for (map<string, Matrix*>::iterator it= params.begin(); it != params.end(); ++it){
+    	Matrix *m = it->second;
+    	params.erase(it);
+    	delete m;
+    }
 
 }

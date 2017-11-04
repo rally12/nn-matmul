@@ -10,24 +10,35 @@ using namespace std;
      */
     Matrix* Matrix::dot(Matrix *A, Matrix *B) throw(std::string) {
         
+    	if(this == A || this == B) throw std::invalid_argument("Dot doas not work with self. "+A->str()+" <dot> "+B->str());
+
+
         if(A->cols != B->rows) throw std::invalid_argument("dimensions, don't match dot a b. "+A->str()+" <dot> "+B->str());
         //if(cols != B->cols) throw std::invalid_argument("dimensions, don't match cols. "+A->str()+" <dot> "+B->str());
         //if(A->rows != rows) throw std::invalid_argument("dimensions, don't match rows. "+A->str()+" <dot> "+B->str());
-		if (values != NULL) delete values;
+		if (values != NULL) delete[] values;
 		this->cols = B->cols;
 		this->rows = A->rows;
-		values = new float[rows*cols];
+		len = rows*cols;
+		values = new float[len]();
         len = rows * cols;
 		float cell=0;
 		int square = A->cols;
-        for (int c=0; c < cols; c++) {
-            for (int r=0;  r < rows; r++) {
+		int myrow=0;
+        for (int c=0; c < B->cols; c++) {
+        	myrow=0;
+            for (int r=0;  r < A->len; r+=A->cols) {
                 cell=0;
-                for ( int i = 0; i < square; i++) {
-                    cell += A->at(r, i) * B->at(i, c);
+                for ( int i = r, j=c; j < B->len; i++, j+=B->cols) {
+                	if (debug) cout<<" pos="<<to_string(i)<<", "<<to_string(j)<<
+                			" v1="<<to_string(A->values[i])<<
+                			" v2="<<to_string(B->values[j])<<endl;
+                    cell += A->values[i] * B->values[j];
                 }
-                set(r, c, cell);
+                this->values[c+myrow]=cell;
+                myrow+=cols;
             }
+
         }
         return this;
     }
@@ -50,6 +61,16 @@ using namespace std;
         return this;
     }
     
+    /**
+   	 * Broadcast add
+   	 */
+   	Matrix* Matrix::add(float x) throw(std::string){
+   		for (int i=0; i< len; i++) {
+   			values[i]= values[i] + x;
+   		}
+   		return this;
+   	}
+
     /**
      * Broadcast sub
      */
@@ -84,23 +105,39 @@ using namespace std;
         return this;
     }
     
+    /**
+	 * Broadcast multiply
+	 */
+	Matrix* Matrix::mul(float x) throw(std::string){
+		for (int i=0; i< len; i++) {
+			values[i]= values[i] * x;
+		}
+		return this;
+	}
+
     const std::string Matrix::display() {
         std::string ret = string("");
-        ret.append(" M(");
+        ret.append(" ").append(name).append("(");
         ret.append(to_string(cols));
         ret.append(", ");
         ret.append(to_string(rows));
         ret.append(")\n");
-        for (int r=0; r < rows; r++) {
-            if (r > 0) ret.append(",\n");
-            ret.append("[");
-            for (int c=0; c < cols; c++) {
-                if (c > 0) ret.append(",");
-                string val = to_string(at(c, r));
-                ret.append(" ").append(val);
+        for (int i=0; i < len; i++) {
+            if ( i%cols==0){
+            	if(i==0) {
+            		ret.append("[");
+            	} else {
+            		ret.append(",\n ");
+            	}
             }
-            ret.append(" ]");
+
+            	if (i%cols > 0) ret.append(",");
+                string val = to_string(values[i]);
+                ret.append(" ").append(val);
+
+
         }
+        ret.append("]");
         return ret;
     }
     
@@ -156,5 +193,6 @@ using namespace std;
                 ret.set(c,r,at(r,c));
             }
         }
+        ret.name=name+".T";
         return ret;
     }
