@@ -55,32 +55,32 @@ class Matrix {
     /**
      * Matmul
      */
-    Matrix* dot(Matrix *A, Matrix *B) throw(std::string);
+    Matrix* dot(Matrix *A, Matrix *B) throw(std::invalid_argument);
     
     /**
      * Broadcast add
      */
-    Matrix* add(Matrix *B)throw(std::string);
+    Matrix* add(Matrix *B)throw(std::invalid_argument);
     
     /**
 	 * Broadcast add
 	 */
-	Matrix* add(float x)throw(std::string);
+	Matrix* add(float x)throw(std::invalid_argument);
 
     /**
      * Broadcast sub
      */
-    Matrix* sub(Matrix *B)throw(std::string);
+    Matrix* sub(Matrix *B)throw(std::invalid_argument);
     
     /**
      * Broadcast multiply
      */
-    Matrix* mul(Matrix *B)throw(std::string);
+    Matrix* mul(Matrix *B)throw(std::invalid_argument);
     
     /**
 	 * Broadcast multiply
 	 */
-	Matrix* mul(float x)throw(std::string);
+	Matrix* mul(float x)throw(std::invalid_argument);
 
     float at(int r, int c) {
 		 if (debug) cout<<" pos="<<to_string(r)<<", "<<to_string(c)<<

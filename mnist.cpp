@@ -12,7 +12,7 @@ int batch_size = 10;
 float one_over_m = 1.0/batch_size;
 //Matrix one_over_m = Matrix(one_over_m_,1,1);
 
-float learning_rate=0.00000007;
+float learning_rate=0.07;
 
 typedef  map<string, Matrix*> matrix_map;
 
@@ -76,7 +76,7 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         A->relu();
         cout<<" A"<<i+1<<" ["<< A->get_rows() <<", "<<A->get_cols() <<"]  x["<< x->get_rows() <<", "<<x->get_cols() <<"] "<<endl;
         x = A;
-        cout <<" ff "<< i << endl << A->display() <<endl;
+        //cout <<" ff "<< i << endl << A->display() <<endl;
     }
  }
  
@@ -103,14 +103,14 @@ map<string, Matrix*> init_parameters(int* input_count, int layers, int batch_siz
         Matrix dW = Matrix(*W, "dW");//copy size
         Matrix dAi = Ai->T();
 
-        cout<< dAi.display() <<endl;
-        cout<< dZ->display() <<endl;
+        //cout<< dAi.display() <<endl;
+        //cout<< dZ->display() <<endl;
         dW.dot(dZ, &dAi)->mul(one_over_m);
-        cout<< dW.display() <<endl;
+        //cout<< dW.display() <<endl;
         dW.mul(learning_rate);
         W->sub(&dW);
         
-        cout<< W->display()<<endl;
+        //cout<< W->display()<<endl;
 
         Matrix db = Matrix(*b);//copy size
         db.dot(dZ, ones);
@@ -152,15 +152,18 @@ int  main(int argc, char** argv){
     
     cout<< "end ff m2"<<endl; 
     //Y->add(ones);
-    for(int i=0;i<2 ; i++){
+    for(int i=0;i<20 ; i++){
         cout<< "batch: "<<i<<endl;
         feedforward(&X, params, 3);
         
         Matrix A3 = Matrix(*params[string("A3")]);
         //cout<< "batch: "<<i<<endl<<A3.display()<<endl;
         A3.sub(&Y);
-        Matrix err = Matrix(*ones,"err");
-        err.dot(&A3, ones);
+        Matrix errcol = Matrix(*ones,"err");
+        errcol.dot(&A3, ones);
+        Matrix err = Matrix((ones->T()),"err");
+        Matrix errow = errcol.T();
+        err.dot(&errow, ones);
         cout << "err: "<< err.display() <<endl;
         backprop(&X, &Y, params, 3);
     }
@@ -168,7 +171,6 @@ int  main(int argc, char** argv){
     params.erase("A0");
     for (map<string, Matrix*>::iterator it= params.begin(); it != params.end(); ++it){
     	Matrix *m = it->second;
-    	params.erase(it);
     	delete m;
     }
 

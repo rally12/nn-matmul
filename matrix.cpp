@@ -8,7 +8,7 @@ using namespace std;
     /**
      * Matmul
      */
-    Matrix* Matrix::dot(Matrix *A, Matrix *B) throw(std::string) {
+    Matrix* Matrix::dot(Matrix *A, Matrix *B) throw(std::invalid_argument) {
         
     	if(this == A || this == B) throw std::invalid_argument("Dot doas not work with self. "+A->str()+" <dot> "+B->str());
 
@@ -46,14 +46,14 @@ using namespace std;
     /**
      * Broadcast add
      */
-    Matrix* Matrix::add(Matrix *B) throw(std::string){
+    Matrix* Matrix::add(Matrix *B) throw(std::invalid_argument){
         if (0 != (cols % B->cols) || 0 != (rows % B->rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
             int bc = c % B->cols;
             for (int r=0;  r < rows; r++) {
                 int br = r % B->rows;
-                cell=at(r,c) + B->at(r, c);
+                cell=at(r,c) + B->at(br, bc);
                 
                 set(r, c, cell);
             }
@@ -64,7 +64,7 @@ using namespace std;
     /**
    	 * Broadcast add
    	 */
-   	Matrix* Matrix::add(float x) throw(std::string){
+   	Matrix* Matrix::add(float x) throw(std::invalid_argument){
    		for (int i=0; i< len; i++) {
    			values[i]= values[i] + x;
    		}
@@ -74,7 +74,7 @@ using namespace std;
     /**
      * Broadcast sub
      */
-    Matrix* Matrix::sub(Matrix *B) throw(std::string){
+    Matrix* Matrix::sub(Matrix *B) throw(std::invalid_argument){
         if (0 != (cols % B->cols) || 0 != (rows % B->rows)) throw std::invalid_argument("dimensions, don't match."+str()+" <> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
@@ -91,7 +91,7 @@ using namespace std;
     /**
      * Broadcast multiply
      */
-    Matrix* Matrix::mul(Matrix *B) throw(std::string){
+    Matrix* Matrix::mul(Matrix *B) throw(std::invalid_argument){
         if (0 != (cols % B->cols) || 0 != (rows % B->rows)) throw std::invalid_argument("dimensions, don't match. "+str()+" <> "+B->str());
         float cell=0;
         for (int c=0; c< cols; c++) {
@@ -108,7 +108,7 @@ using namespace std;
     /**
 	 * Broadcast multiply
 	 */
-	Matrix* Matrix::mul(float x) throw(std::string){
+	Matrix* Matrix::mul(float x) throw(std::invalid_argument){
 		for (int i=0; i< len; i++) {
 			values[i]= values[i] * x;
 		}
